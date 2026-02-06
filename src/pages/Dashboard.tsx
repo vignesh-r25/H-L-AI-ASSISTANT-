@@ -1,7 +1,7 @@
-import { motion } from "framer-motion";
-import { Zap, BookOpen, Brain, Target } from "lucide-react";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { motion, AnimatePresence } from "framer-motion";
+import { Zap, BookOpen, Brain, Target, Bell } from "lucide-react";
+import { useEffect } from "react";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { XPProgressBar } from "@/components/dashboard/XPProgressBar";
 import { StreakDisplay } from "@/components/dashboard/StreakDisplay";
@@ -69,16 +69,7 @@ export const Dashboard = ({ profile, onNavigate }: DashboardProps) => {
     show: { opacity: 1, y: 0 }
   };
 
-  const [announcements, setAnnouncements] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetchAnnouncements();
-  }, []);
-
-  const fetchAnnouncements = async () => {
-    const { data } = await supabase.from('announcements').select('*').order('created_at', { ascending: false }).limit(3);
-    setAnnouncements(data || []);
-  };
+  const { notifications } = useNotifications();
 
   return (
     <motion.div
@@ -97,23 +88,68 @@ export const Dashboard = ({ profile, onNavigate }: DashboardProps) => {
         </p>
       </motion.div>
 
-      {/* Announcements Broadcast */}
-      {announcements.length > 0 && (
-        <motion.div variants={item} className="space-y-4">
-          {announcements.map(ann => (
-            <div key={ann.id} className="p-4 rounded-lg bg-primary/5 border border-primary/20 flex gap-4 items-start">
-              <div className="p-2 bg-primary/10 rounded-full">
-                <Target className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">{ann.title}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{ann.content}</p>
-                <p className="text-xs text-muted-foreground/60 mt-2">{new Date(ann.created_at).toLocaleDateString()}</p>
+      {/* Real-time Notifications / Activity Log */}
+      {/* Real-time Notifications / Activity Log */}
+      <AnimatePresence mode="popLayout">
+        {notifications.length > 0 ? (
+          <motion.div variants={item} className="space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Live Activity Feed</h3>
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-[10px] text-emerald-500 font-mono">ONLINE</span>
               </div>
             </div>
-          ))}
-        </motion.div>
-      )}
+
+            <div className="max-h-[300px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+              {notifications.map(notif => (
+                <motion.div
+                  key={notif.id}
+                  layout
+                  initial={{ opacity: 0, x: -20, scale: 0.95 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 20, scale: 0.9 }}
+                  className={`p-4 rounded-xl border flex gap-4 items-start relative group transition-all duration-300 ${notif.type === 'success'
+                      ? 'bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10'
+                      : notif.type === 'warning' || notif.type === 'error'
+                        ? 'bg-amber-500/5 border-amber-500/20 hover:bg-amber-500/10'
+                        : 'bg-cyan-500/5 border-cyan-500/20 hover:bg-cyan-500/10'
+                    }`}
+                >
+                  <div className={`p-2 rounded-lg shrink-0 ${notif.type === 'success' ? 'bg-emerald-500/10 text-emerald-400' :
+                      notif.type === 'warning' || notif.type === 'error' ? 'bg-amber-500/10 text-amber-400' :
+                        'bg-cyan-500/10 text-cyan-400'
+                    }`}>
+                    {notif.type === 'success' ? <Zap className="w-4 h-4" /> :
+                      notif.type === 'warning' ? <Target className="w-4 h-4" /> :
+                        <Bell className="w-4 h-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <h3 className={`font-semibold text-sm ${notif.type === 'success' ? 'text-emerald-100' :
+                          notif.type === 'warning' || notif.type === 'error' ? 'text-amber-100' :
+                            'text-cyan-100'
+                        }`}>{notif.title}</h3>
+                      <span className="text-[10px] text-gray-500 font-mono opacity-50 group-hover:opacity-100 transition-opacity">
+                        {notif.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 leading-relaxed">{notif.message}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div variants={item} className="py-8 text-center border border-white/5 rounded-xl bg-white/5 border-dashed">
+            <Bell className="w-8 h-8 text-gray-700 mx-auto mb-2" />
+            <p className="text-xs text-gray-500 uppercase tracking-widest">No recent activity</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* XP Progress */}
       <motion.div variants={item} className="glass-card p-6">

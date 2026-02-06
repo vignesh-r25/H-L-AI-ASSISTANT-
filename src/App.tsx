@@ -18,46 +18,49 @@ import FocusChamber from "./pages/FocusChamber";
 const queryClient = new QueryClient();
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      <NotificationProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
 
-            {/* Admin Routes */}
-            <Route
-              path="/admin-dashboard"
-              element={
-                <RoleGuard allowedRoles={['teacher', 'super_admin', 'master']}>
-                  <AdminLayout />
+              {/* Admin Routes */}
+              <Route
+                path="/admin-dashboard"
+                element={
+                  <RoleGuard allowedRoles={['teacher', 'super_admin', 'master']}>
+                    <AdminLayout />
+                  </RoleGuard>
+                }
+              >
+                <Route index element={<AdminOverview />} />
+                {/* Future routes will go here: announcements, quizzes, etc */}
+                <Route path="announcements" element={<AdminAnnouncements />} />
+                <Route path="quizzes" element={<AdminQuizManager />} />
+                <Route path="resources" element={<AdminResources />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
+              </Route>
+
+              <Route path="focus-chamber" element={
+                <RoleGuard allowedRoles={['student', 'teacher', 'super_admin', 'master', 'super-admin', 'super admin']}>
+                  <FocusChamber />
                 </RoleGuard>
-              }
-            >
-              <Route index element={<AdminOverview />} />
-              {/* Future routes will go here: announcements, quizzes, etc */}
-              <Route path="announcements" element={<AdminAnnouncements />} />
-              <Route path="quizzes" element={<AdminQuizManager />} />
-              <Route path="resources" element={<AdminResources />} />
-              <Route path="analytics" element={<AdminAnalytics />} />
-            </Route>
+              } />
 
-            <Route path="focus-chamber" element={
-              <RoleGuard allowedRoles={['student', 'teacher', 'super_admin', 'master', 'super-admin', 'super admin']}>
-                <FocusChamber />
-              </RoleGuard>
-            } />
-
-            <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+              <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </NotificationProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

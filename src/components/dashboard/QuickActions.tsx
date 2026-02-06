@@ -27,34 +27,40 @@ const QuickAction = ({
   variant = "secondary"
 }: QuickActionProps) => (
   <motion.button
-    whileHover={{ scale: 1.02, y: -2 }}
-    whileTap={{ scale: 0.98 }}
+    whileHover={{ scale: 1.01, y: -1 }}
+    whileTap={{ scale: 0.99 }}
     onClick={onClick}
-    className={`w-full p-4 rounded-xl text-left transition-all duration-300 group ${variant === "primary"
-        ? "bg-gradient-primary text-primary-foreground shadow-lg"
-        : "glass-card hover:border-primary/30"
+    className={`w-full p-6 rounded-xl text-left transition-all duration-300 group border relative overflow-hidden ${variant === "primary"
+        ? "bg-gradient-to-br from-[#111111] to-[#0A0A0A] border-cyan-500/30 shadow-[0_0_15px_rgba(0,229,255,0.15)]"
+        : "bg-gradient-to-br from-[#111111] to-[#0A0A0A] border-white/10 hover:border-white/20"
       }`}
   >
-    <div className="flex items-center gap-4">
-      <div className={`p-3 rounded-lg ${variant === "primary"
-          ? "bg-white/20"
-          : "bg-primary/10 group-hover:bg-primary/20"
-        } transition-colors`}>
+    {/* Hover Glow Effect */}
+    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 -translate-x-full group-hover:translate-x-full transition-all duration-1000 ease-in-out pointer-events-none" />
+
+    <div className="flex items-center gap-5">
+      <div className={`p-3 rounded-lg shrink-0 flex items-center justify-center ${variant === "primary"
+          ? "bg-cyan-500/10 text-cyan-400"
+          : "bg-white/5 text-gray-400 group-hover:text-white group-hover:bg-white/10"
+        } transition-colors duration-300`}>
         {icon}
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-1">
-          <h4 className={`font-semibold ${variant === "primary" ? "" : "text-foreground"
-            }`}>
+
+      <div className="flex-1 min-w-0 flex flex-col justify-center">
+        <div className="flex items-center justify-between gap-4 mb-1">
+          <h4 className={`font-semibold text-base leading-none ${variant === "primary" ? "text-white" : "text-gray-200 group-hover:text-white"
+            } transition-colors`}>
             {label}
           </h4>
-          <span className={`badge-xp text-xs ${variant === "primary" ? "!bg-white/20 !text-white !border-white/30" : ""
+          <span className={`font-mono text-xs px-2 py-0.5 rounded border ${variant === "primary"
+              ? "bg-cyan-950/30 text-cyan-400 border-cyan-500/20"
+              : "bg-white/5 text-gray-400 border-white/10"
             }`}>
             +{xpReward} XP
           </span>
         </div>
-        <p className={`text-sm ${variant === "primary" ? "text-white/80" : "text-muted-foreground"
-          }`}>
+        <p className={`text-sm leading-tight truncate ${variant === "primary" ? "text-cyan-100/60" : "text-gray-500 group-hover:text-gray-400"
+          } transition-colors`}>
           {description}
         </p>
       </div>

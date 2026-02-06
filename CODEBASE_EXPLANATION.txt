@@ -1,0 +1,71 @@
+CODEBASE ANALYSIS REPORT
+========================
+
+This file provides an breakdown of the project structure for the 'h-l-learing-assistant' repository.
+
+OVERVIEW
+--------
+This is a modern web application using a "Single Page Application" (SPA) architecture.
+- Frontend: React (built with Vite), TypeScript, Tailwind CSS.
+- Backend: Supabase (Architecture-as-a-Service).
+
+1. FRONTEND (The visible part of the app)
+-----------------------------------------
+Location: /src
+
+The frontend handles all user interactions, UI rendering, and logic.
+
+* /src/main.tsx
+  - The entry point. It "mounts" the React application into the DOM (index.html).
+
+* /src/App.tsx
+  - The main container. It sets up the Routing (navigation between pages) and global Query Clients.
+
+* /src/pages/
+  - Contains the main views of the application. Each file here usually corresponds to a route (e.g., /dashboard, /chat).
+  - Examples:
+    - Dashboard.tsx: Main user landing view.
+    - Chat.tsx: Chat interface.
+    - Materials.tsx: Study materials view.
+    - FocusChamber.tsx: Specialized focus mode view.
+
+* /src/components/
+  - Reusable UI building blocks (buttons, cards, headers) used across multiple pages to maintain consistency.
+
+* /src/contexts/
+  - Handles global state that needs to be accessible everywhere (e.g., Authentication state, Theme).
+
+* /src/hooks/
+  - Custom React hooks to encapsulate logic (e.g., useToast for notifications).
+
+* /src/lib/
+  - Utility functions and helper classes (e.g., formatting dates, generic helpers).
+
+* /src/integrations/
+  - Connection logic for external services.
+  - /src/integrations/supabase: Contains the Supabase client initialization, connecting the frontend to the backend database.
+
+* /src/index.css & /tailwind.config.ts
+  - Handles styling. Uses Tailwind CSS for utility-first styling.
+
+
+2. BACKEND (The data & logic layer)
+-----------------------------------
+Location: /supabase & External Service
+
+The backend is primarily managed by Supabase, which provides Database (PostgreSQL), Authentication, and Realtime subscriptions.
+
+* /supabase/
+  - This folder contains the local configuration for Supabase.
+  - /supabase/migrations/
+    - SQL files that define the database structure (Tables like 'profiles', 'materials', 'chat_logs').
+    - These files tell Supabase how to set up the database.
+  - config.toml: Configuration for the local Supabase development instance.
+
+HOW IT WORKS TOGETHER
+---------------------
+1. User visits the site -> Index.html loads -> src/main.tsx starts React.
+2. App.tsx determines which Page to show based on the URL.
+3. The Page (e.g., Dashboard.tsx) fetches data using the Supabase client (from src/integrations).
+4. Supabase (Backend) returns the data from the PostgreSQL database.
+5. The Page renders the data using Components (from src/components).

@@ -108,15 +108,32 @@ export const Sidebar = ({
             <li key={item.id}>
               <button
                 onClick={() => onNavigate(item.id)}
-                className={`nav-item w-full ${currentPage === item.id ? 'active' : ''}`}
+                className={`nav-item w-full relative group ${currentPage === item.id
+                    ? 'bg-primary/10 text-primary border-r-2 border-primary/50'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  } transition-all duration-200`}
               >
-                <item.icon className="w-5 h-5 shrink-0" />
-                <motion.span
-                  animate={{ opacity: collapsed ? 0 : 1, width: collapsed ? 0 : "auto" }}
-                  className="overflow-hidden whitespace-nowrap"
-                >
-                  {item.label}
-                </motion.span>
+                {currentPage === item.id && (
+                  <motion.div
+                    layoutId="activeNav"
+                    className="absolute inset-0 bg-primary/5 rounded-lg"
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+                <div className={`flex items-center gap-3 relative z-10 ${collapsed ? 'justify-center w-full px-0' : 'px-2'}`}>
+                  <item.icon className={`w-5 h-5 shrink-0 transition-colors ${currentPage === item.id ? 'text-cyan-400 drop-shadow-[0_0_8px_rgba(0,229,255,0.5)]' : 'group-hover:text-cyan-200'
+                    }`} />
+                  {!collapsed && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="overflow-hidden whitespace-nowrap font-medium"
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </div>
               </button>
             </li>
           ))}
@@ -126,15 +143,17 @@ export const Sidebar = ({
             <li>
               <button
                 onClick={() => onNavigate("assessment")}
-                className={`nav-item w-full ${currentPage === 'assessment' ? 'active' : ''} text-primary hover:bg-primary/10`}
+                className={`nav-item w-full relative group ${currentPage === 'assessment' ? 'text-cyan-400 bg-cyan-950/20' : 'text-cyan-600 hover:text-cyan-400 hover:bg-cyan-950/10'
+                  }`}
               >
-                <ClipboardCheck className="w-5 h-5 shrink-0" />
-                <motion.span
-                  animate={{ opacity: collapsed ? 0 : 1, width: collapsed ? 0 : "auto" }}
-                  className="overflow-hidden whitespace-nowrap font-semibold"
-                >
-                  Assessment
-                </motion.span>
+                <div className={`flex items-center gap-3 relative z-10 ${collapsed ? 'justify-center w-full px-0' : 'px-2'}`}>
+                  <ClipboardCheck className="w-5 h-5 shrink-0" />
+                  {!collapsed && (
+                    <span className="overflow-hidden whitespace-nowrap font-semibold">
+                      Assessment
+                    </span>
+                  )}
+                </div>
               </button>
             </li>
           )}
@@ -145,15 +164,16 @@ export const Sidebar = ({
               onClick={() => window.location.href = "/focus-chamber"}
               className="nav-item w-full text-blue-400 hover:text-blue-300 hover:bg-blue-950/30 group"
             >
-              <div className="p-1 rounded bg-blue-950/50 group-hover:bg-blue-900/50 mr-2">
-                <Lock className="w-3 h-3 text-blue-500" />
+              <div className={`flex items-center gap-3 relative z-10 ${collapsed ? 'justify-center w-full px-0' : 'px-2'}`}>
+                <div className="p-1 rounded bg-blue-950/50 group-hover:bg-blue-900/50">
+                  <Lock className="w-3 h-3 text-blue-500" />
+                </div>
+                {!collapsed && (
+                  <span className="overflow-hidden whitespace-nowrap font-bold tracking-wide text-xs">
+                    FOCUS MODE
+                  </span>
+                )}
               </div>
-              <motion.span
-                animate={{ opacity: collapsed ? 0 : 1, width: collapsed ? 0 : "auto" }}
-                className="overflow-hidden whitespace-nowrap font-bold tracking-wide"
-              >
-                FOCUS MODE
-              </motion.span>
             </button>
           </li>
         </ul>
