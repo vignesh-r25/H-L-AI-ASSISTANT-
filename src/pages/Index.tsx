@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/auth/AuthForm";
@@ -28,6 +29,8 @@ interface Profile {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -102,6 +105,18 @@ const Index = () => {
         </div>
       </div>
     );
+  }
+
+  // Redirect logic: authenticated users on /auth -> go to /dashboard
+  if (session && user && location.pathname === "/auth") {
+    navigate("/dashboard", { replace: true });
+    return null;
+  }
+
+  // Redirect logic: unauthenticated users on /dashboard -> go to /auth
+  if ((!session || !user) && location.pathname === "/dashboard") {
+    navigate("/auth", { replace: true });
+    return null;
   }
 
   // Not authenticated - show auth form
