@@ -2,6 +2,8 @@ import { Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { AppleNotification } from "@/components/ui/AppleNotification";
 // import { AuthForm } from "@/components/auth/AuthForm"; // Removed
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
@@ -67,7 +69,6 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, []);
-
   useEffect(() => {
     const handleCustomNav = (e: Event) => {
       const customEvent = e as CustomEvent<string>;
@@ -75,6 +76,31 @@ const Index = () => {
     };
     window.addEventListener('navigate-to', handleCustomNav);
     return () => window.removeEventListener('navigate-to', handleCustomNav);
+  }, []);
+
+  useEffect(() => {
+    // Check for welcome message flag
+    const locationState = window.history.state?.usr;
+    if (locationState?.showWelcome) {
+      // Trigger notification flood simulation
+      import("@/utils/notificationData").then(({ FLOOD_NOTIFICATIONS }) => {
+        FLOOD_NOTIFICATIONS.forEach((note, index) => {
+          setTimeout(() => {
+            toast.custom((t) => (
+              <AppleNotification
+                title={note.title}
+                message={note.message}
+                onClose={() => toast.dismiss(t)}
+              />
+            ), { duration: 5000 });
+          }, index * 800); // 800ms delay between each notification
+        });
+      });
+
+      // Clear the state so it doesn't show again on refresh
+      const state = { ...window.history.state, usr: { ...window.history.state?.usr, showWelcome: false } };
+      window.history.replaceState(state, "");
+    }
   }, []);
 
   const fetchProfile = async (userId: string) => {

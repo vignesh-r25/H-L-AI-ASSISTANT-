@@ -35,6 +35,30 @@ const SEARCH_ITEMS = [
   { id: "6", title: "React Hooks Guide", type: "Material", icon: FileText, path: "/materials" },
 ];
 
+const MOCK_NOTIFICATIONS = [
+  {
+    id: 1,
+    title: "New Quiz Available",
+    message: "Test your knowledge with the new Neural Networks quiz!",
+    time: "2m ago",
+    read: false,
+  },
+  {
+    id: 2,
+    title: "Achievement Unlocked",
+    message: "You've completed your first 7-day streak! Keep it up!",
+    time: "1h ago",
+    read: false,
+  },
+  {
+    id: 3,
+    title: "Assignment Due",
+    message: "Machine Learning Basics assignment is due in 24 hours.",
+    time: "5h ago",
+    read: false,
+  },
+];
+
 export const Header = ({
   userName,
   userEmail,
@@ -151,12 +175,39 @@ export const Header = ({
         {/* Right side */}
         <div className="flex items-center gap-3">
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive rounded-full text-[10px] font-bold text-destructive-foreground flex items-center justify-center">
-              3
-            </span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="w-5 h-5" />
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive rounded-full text-[10px] font-bold text-destructive-foreground flex items-center justify-center">
+                  3
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <ScrollArea className="h-[300px]">
+                {MOCK_NOTIFICATIONS.map((notification) => (
+                  <DropdownMenuItem key={notification.id} className="cursor-pointer">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold">{notification.title}</span>
+                        <span className="text-xs text-muted-foreground">{notification.time}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {notification.message}
+                      </p>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </ScrollArea>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="w-full text-center text-sm text-primary font-medium cursor-pointer justify-center">
+                Mark all as read
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* User Menu */}
           <DropdownMenu>

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { generateResponse } from "@/services/ai";
 import { motion, AnimatePresence } from "framer-motion";
 // ... imports
 import { Send, Bot, User as UserIcon, Paperclip, FileText, X, Sparkles, Lightbulb, GraduationCap, History, MessageSquare, Clock, Trash2 } from "lucide-react";
@@ -117,7 +118,7 @@ export const Chat = () => {
         toast.success("History deleted successfully");
     };
 
-    const handleSend = (text = input) => {
+    const handleSend = async (text = input) => {
         if (!text.trim()) return;
 
         const timestamp = new Date();
@@ -145,29 +146,23 @@ export const Chat = () => {
         setInput("");
         setIsTyping(true);
 
-        // Simulate AI RAG response
-        setTimeout(() => {
-            let response = "That's an interesting question. I'd typically verify that with your study materials.";
+        // Call Gemini AI
+        try {
+            let response = "";
 
+            // Check for file context
+            let context = "";
             if (fileContext) {
                 const keywords = text.toLowerCase().split(" ").filter(w => w.length > 3);
-                const found = keywords.some(k => fileContext.content.toLowerCase().includes(k));
-
-                if (found) {
-                    response = `Based on "${fileContext.name}", I found relevant information regarding your query. The document discusses this topic in detail. (This is a simulation of RAG context retrieval).`;
-                } else {
-                    response = `I checked "${fileContext.name}", but I couldn't find a specific mention of that. Can you rephrase or ask about something else covered in the document?`;
-                }
-            } else {
-                // Generic responses for demo
-                const responses = [
-                    "I can help you understand that concept better. Would you like a simplified explanation?",
-                    "Great question! In the context of your studies, this usually refers to...",
-                    "I can generate some practice questions about that if you'd like.",
-                    "Let me break that down for you step-by-step."
-                ];
-                response = responses[Math.floor(Math.random() * responses.length)];
+                // Simple keyword check for demo purposes before sending full context
+                // In a real production app with large PDFs, you'd use vector search embeddings here
+                // For now, we'll send a truncated version of the content to fit context window if needed, 
+                // or just the full content if it's small enough. Gemini 1.5 Pro has a huge context window!
+                context = `Document Name: ${fileContext.name}\nContent: ${fileContext.content.substring(0, 30000)}...`; // Limit context for safety
             }
+
+            const aiResponse = await generateResponse(text, context);
+            response = aiResponse;
 
             const aiMessage: Message = {
                 id: Math.random().toString(36).substring(7),
@@ -176,8 +171,18 @@ export const Chat = () => {
                 timestamp: new Date()
             };
             setMessages(prev => [...prev, aiMessage]);
+
+        } catch (error) {
+            const errorMessage: Message = {
+                id: Math.random().toString(36).substring(7),
+                role: "assistant",
+                content: "I'm sorry, I encountered an error communicating with my AI brain. Please check your internet connection or API key.",
+                timestamp: new Date()
+            };
+            setMessages(prev => [...prev, errorMessage]);
+        } finally {
             setIsTyping(false);
-        }, 1500);
+        }
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {

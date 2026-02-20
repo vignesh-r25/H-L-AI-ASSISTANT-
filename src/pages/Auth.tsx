@@ -13,18 +13,18 @@ export default function Auth() {
         // Check if already authenticated
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
-                navigate("/dashboard");
+                navigate("/dashboard", { state: { showWelcome: true } });
             }
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
-                navigate("/dashboard");
+                navigate("/dashboard", { state: { showWelcome: true } });
             }
         });
 
         return () => subscription.unsubscribe();
     }, [navigate]);
 
-    return <AuthForm onSuccess={() => navigate("/dashboard")} defaultIsLogin={!isSignup} />;
+    return <AuthForm onSuccess={() => navigate("/dashboard", { state: { showWelcome: true } })} defaultIsLogin={!isSignup} />;
 }
