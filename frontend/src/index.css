@@ -9,20 +9,21 @@
 @layer base {
   :root {
     /* Light Mode Defaults - Winter White Theme */
-    --background: 210 20% 96%;
-    /* Slightly deeper winter gray */
-    --foreground: 240 10% 3.9%;
+    --background: 210 20% 98%;
+    /* Pure white background with slight tint */
+    --foreground: 240 10% 10%;
+    /* Darker slate for better text contrast */
 
     --card: 0 0% 100%;
-    /* Pure white to pop against the winter snow */
-    --card-foreground: 240 10% 3.9%;
+    /* Pure white surfaces */
+    --card-foreground: 240 10% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 240 10% 10%;
 
-    --primary: 187 100% 35%;
-    /* Darker cyan for light mode contrast */
-    --primary-foreground: 0 0% 98%;
+    --primary: 187 100% 40%;
+    /* Slightly more vibrant cyan for light mode */
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -38,7 +39,7 @@
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 187 100% 35%;
+    --ring: 187 100% 40%;
 
     --radius: 0.75rem;
 
@@ -51,27 +52,27 @@
     --warning-amber: 38 92% 50%;
     --purple-accent: 270 80% 60%;
 
-    /* Gradients - Light Mode */
+    /* Gradients - Light Mode - MORE PREMIUM */
     --gradient-primary: linear-gradient(135deg, hsl(187 100% 40%) 0%, hsl(270 80% 60%) 100%);
     --gradient-fire: linear-gradient(135deg, hsl(20 100% 50%) 0%, hsl(45 100% 50%) 100%);
-    --gradient-dark: linear-gradient(180deg, hsl(240 10% 98%) 0%, hsl(240 10% 95%) 100%);
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100% / 0.8) 0%, hsl(0 0% 98% / 0.9) 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(240 20% 99%) 0%, hsl(240 20% 96%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100% / 0.8) 0%, hsl(210 20% 98% / 0.9) 100%);
 
-    /* Shadows - Light Mode */
-    --shadow-glow-cyan: 0 0 15px hsl(var(--primary) / 0.1), 0 0 30px hsl(var(--primary) / 0.05);
-    --shadow-glow-orange: 0 0 15px hsl(var(--streak-orange) / 0.2), 0 0 30px hsl(var(--streak-orange) / 0.1);
-    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.03);
-    --shadow-elevated: 0 10px 40px hsl(0 0% 0% / 0.08);
+    /* Shadows - Light Mode - SOFT BUT PREMIUM */
+    --shadow-glow-cyan: 0 0 20px hsl(var(--primary) / 0.15), 0 0 40px hsl(var(--primary) / 0.08);
+    --shadow-glow-orange: 0 0 20px hsl(var(--streak-orange) / 0.2), 0 0 40px hsl(var(--streak-orange) / 0.1);
+    --shadow-card: 0 2px 12px hsl(0 0% 0% / 0.04), 0 8px 30px hsl(0 0% 0% / 0.02);
+    --shadow-elevated: 0 10px 40px hsl(0 0% 0% / 0.06);
 
     /* Sidebar - Light Mode */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 240 10% 25%;
+    --sidebar-primary: 187 100% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 10% 10%;
+    --sidebar-border: 240 5% 90%;
+    --sidebar-ring: 187 100% 40%;
   }
 
   .dark {

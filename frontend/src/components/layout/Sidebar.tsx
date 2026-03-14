@@ -57,7 +57,7 @@ export const Sidebar = ({
       style={{ width: collapsed ? 90 : 280 }}
       className={cn(
         "fixed left-4 top-4 bottom-4 rounded-lg z-50 flex flex-col transition-none",
-        "bg-black border border-border/80 shadow-none",
+        "bg-sidebar-background border border-border/80 shadow-none",
       )}
     >
       {/* Header */}
@@ -206,7 +206,7 @@ export const Sidebar = ({
             variant="outline"
             size="icon"
             onClick={onToggleCollapse}
-            className="w-6 h-6 rounded-full shadow-none bg-black border-border"
+            className="w-6 h-6 rounded-full shadow-none bg-sidebar-background border-border"
           >
             <ChevronRight className="w-3 h-3" />
           </Button>

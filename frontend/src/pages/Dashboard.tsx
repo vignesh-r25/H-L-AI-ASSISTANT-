@@ -33,6 +33,7 @@ interface DashboardProps {
     displayName: string;
     avatarUrl?: string;
   };
+  onNavigate: (page: string) => void;
   onProfileUpdate?: (updates: any) => void;
 }
 
@@ -63,32 +64,51 @@ export const Dashboard = ({ userId, profile, onNavigate, onProfileUpdate }: Dash
     try {
       const fileExt = file.name.split('.').pop();
       const filePath = `${userId}/${Date.now()}.${fileExt}`;
+      console.log("[Dashboard] Uploading avatar to path:", filePath);
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file, {
+          upsert: true,
+          contentType: file.type
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("[Dashboard] Storage upload error:", uploadError);
+        let friendlyMsg = uploadError.message;
+        if (uploadError.message === 'Bucket not found') {
+          friendlyMsg = 'Bucket Not Found: Please create the "avatars" bucket in your Supabase storage.';
+        } else if (uploadError.message.includes('Invalid Compact JWS') || (uploadError as any).status === 400) {
+          friendlyMsg = 'Connection Error: Supabase keys in .env might be misconfigured.';
+        }
+        throw new Error(friendlyMsg);
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
+
+      if (!publicUrl) throw new Error("Failed to generate public URL");
+
+      console.log("[Dashboard] Avatar uploaded successfully. Public URL:", publicUrl);
 
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
         .eq('id', userId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("[Dashboard] Profile sync error:", updateError);
+        throw new Error(`Profile sync failed: ${updateError.message}`);
+      }
 
       if (onProfileUpdate) {
         onProfileUpdate({ avatar_url: publicUrl });
       }
       toast.success("Profile photo updated");
     } catch (error: any) {
-      console.error("Avatar upload error:", error);
-      const msg = error.message === 'Bucket not found' ? 'Bucket Not Found (Create "avatars" bucket in Supabase)' : error.message;
-      toast.error(`Sync Failed: ${msg || "Unknown error"}`);
+      console.error("[Dashboard] Photo update failed:", error);
+      toast.error(error.message || "Unknown synchronization failure");
     } finally {
       setUploading(false);
     }
@@ -154,7 +174,7 @@ export const Dashboard = ({ userId, profile, onNavigate, onProfileUpdate }: Dash
         delayChildren: 0.2,
       },
     },
-  };
+  } as const;
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
@@ -163,7 +183,7 @@ export const Dashboard = ({ userId, profile, onNavigate, onProfileUpdate }: Dash
       opacity: 1,
       transition: { duration: 0.5, ease: "easeOut" },
     },
-  };
+  } as const;
 
   return (
     <>
@@ -191,29 +211,29 @@ export const Dashboard = ({ userId, profile, onNavigate, onProfileUpdate }: Dash
                   animate={{ scale: 1, opacity: 1 }}
                   className="hidden md:block relative"
                 >
-                  <Avatar className="w-24 h-24 border-2 border-primary/20 p-1 bg-black overflow-visible">
+                  <Avatar className="w-24 h-24 border-2 border-primary/20 p-1 bg-card overflow-visible">
                     <AvatarImage src={profile.avatarUrl} className="rounded-full object-cover" />
                     <AvatarFallback className="bg-primary/10 text-primary font-bold text-3xl">
                       {profile.displayName.charAt(0).toUpperCase()}
                     </AvatarFallback>
-                    
+
                     {/* Hover Upload Overlay */}
-                    <label className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10">
+                    <label className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10">
                       <div className="flex flex-col items-center gap-1">
-                        <Upload className="w-6 h-6 text-white" />
-                        <span className="text-[10px] text-white font-bold uppercase tracking-widest">Update</span>
+                        <Upload className="w-6 h-6 text-foreground" />
+                        <span className="text-[10px] text-foreground font-bold uppercase tracking-widest">Update</span>
                       </div>
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/*" 
-                        onChange={handleAvatarUpload} 
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleAvatarUpload}
                         disabled={uploading}
                       />
                     </label>
 
                     {/* Small Camera Badge */}
-                    <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary rounded-full flex items-center justify-center border-4 border-black text-white shadow-xl z-20">
+                    <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary rounded-full flex items-center justify-center border-4 border-background text-primary-foreground shadow-xl z-20">
                       {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                     </div>
                   </Avatar>
@@ -233,7 +253,7 @@ export const Dashboard = ({ userId, profile, onNavigate, onProfileUpdate }: Dash
           </div>
 
           <div className="w-full md:w-auto">
-            <div className="p-6 px-8 rounded-lg bg-black border border-border/60 shadow-none min-w-[300px]">
+            <div className="p-6 px-8 rounded-lg bg-card border border-border/60 shadow-none min-w-[300px]">
               <XPProgressBar
                 currentXP={profile.totalXP}
                 nextMilestone={getNextMilestone(profile.totalXP)}
@@ -250,7 +270,7 @@ export const Dashboard = ({ userId, profile, onNavigate, onProfileUpdate }: Dash
               <AppleCard
                 key={ann.id}
                 onClick={() => setSelectedAnnouncement(ann)}
-                className="p-5 flex gap-4 items-center cursor-pointer hover:bg-muted/10 border-border/60 bg-black"
+                className="p-5 flex gap-4 items-center cursor-pointer hover:bg-muted/10 border-border/60 bg-card"
                 noPadding
               >
                 <div className="p-3 bg-muted rounded-2xl shrink-0">
@@ -283,7 +303,7 @@ export const Dashboard = ({ userId, profile, onNavigate, onProfileUpdate }: Dash
                   <Button
                     key={tool.id}
                     variant="ghost"
-                    className="justify-start h-16 gap-4 bg-muted/30 border border-white/5 hover:border-border/40 hover:bg-muted/50 transition-all rounded-2xl group text-md font-semibold"
+                    className="justify-start h-16 gap-4 bg-muted/30 border border-border/10 hover:border-border/40 hover:bg-muted/50 transition-all rounded-2xl group text-md font-semibold"
                     onClick={() => onNavigate(tool.target)}
                   >
                     <div className={cn("p-2.5 rounded-xl transition-colors", tool.bgColor, tool.color)}>

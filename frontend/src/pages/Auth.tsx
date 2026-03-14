@@ -21,22 +21,18 @@ export default function Auth() {
             const { data: { session } } = await supabase.auth.getSession();
             console.log("[Auth] Session check result:", !!session);
             if (mounted) {
-                if (session) {
-                    navigate("/dashboard", { replace: true });
-                } else {
-                    setLoading(false);
-                }
+                // We no longer auto-navigate here to allow showing the AuthForm
+                setLoading(false);
             }
         };
 
         checkSession();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            // Only auto-navigate on initial session recovery. 
             // Manual sign-ins are handled by the AuthForm animation finish.
-            if (mounted && session && event === 'INITIAL_SESSION') {
-                navigate("/dashboard", { replace: true });
-            }
+            // We only auto-navigate if it's an initial session recovery AND we want that behavior.
+            // For this specific request, we want to stay on the Auth page to show the form.
+            console.log("[Auth] Auth state change:", event);
         });
 
         // Faster safety fallback
@@ -53,7 +49,7 @@ export default function Auth() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden">
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center relative overflow-hidden">
                 <EduAnimation />
                 <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5 z-0" />
 
@@ -63,7 +59,7 @@ export default function Auth() {
                     className="relative z-10 flex flex-col items-center text-center px-6"
                 >
                     <div className="relative mb-12">
-                        <motion.div 
+                        <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                             className="w-24 h-24 rounded-full border-2 border-primary/20 border-t-primary shadow-[0_0_30px_rgba(6,182,212,0.1)]"
@@ -72,12 +68,12 @@ export default function Auth() {
                             <Zap className="w-8 h-8 text-primary animate-pulse" />
                         </div>
                     </div>
-                    
+
                     <div className="space-y-4">
-                        <motion.h2 
+                        <motion.h2
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="text-2xl font-bold tracking-tight text-white uppercase"
+                            className="text-2xl font-bold tracking-tight text-foreground uppercase"
                         >
                             Please Wait
                         </motion.h2>
@@ -86,7 +82,7 @@ export default function Auth() {
                                 Synchronizing Identity
                             </p>
                             <div className="w-32 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                                <motion.div 
+                                <motion.div
                                     initial={{ x: "-100%" }}
                                     animate={{ x: "100%" }}
                                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
@@ -101,7 +97,7 @@ export default function Auth() {
     }
 
     return (
-        <div className="min-h-screen relative overflow-hidden bg-black">
+        <div className="min-h-screen relative overflow-hidden bg-background">
             <EduAnimation />
             <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5 z-0" />
             <div className="relative z-10 w-full h-full">

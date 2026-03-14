@@ -49,7 +49,7 @@ export const LoadingTransition = ({ onComplete, waitingFor }: LoadingTransitionP
     const CurrentIcon = statusMessages[statusIndex].icon;
 
     return (
-        <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-6 text-center overflow-hidden">
+        <div className="fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center p-6 text-center overflow-hidden">
             {/* Background Energy Glow */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.1)_0%,transparent_70%)]" />
 

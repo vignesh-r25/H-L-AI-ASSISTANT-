@@ -14,9 +14,12 @@ export type Database = {
           id: string
           material_id: string | null
           user_id: string
-          front: string
-          back: string
-          mastered: boolean | null
+          question: string
+          answer: string
+          is_custom: boolean | null
+          difficulty: string | null
+          last_reviewed: string | null
+          review_count: number | null
           created_at: string | null
           updated_at: string | null
         }
@@ -24,9 +27,12 @@ export type Database = {
           id?: string
           material_id?: string | null
           user_id: string
-          front: string
-          back: string
-          mastered?: boolean | null
+          question: string
+          answer: string
+          is_custom?: boolean | null
+          difficulty?: string | null
+          last_reviewed?: string | null
+          review_count?: number | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -34,9 +40,12 @@ export type Database = {
           id?: string
           material_id?: string | null
           user_id?: string
-          front?: string
-          back?: string
-          mastered?: boolean | null
+          question?: string
+          answer?: string
+          is_custom?: boolean | null
+          difficulty?: string | null
+          last_reviewed?: string | null
+          review_count?: number | null
           created_at?: string | null
           updated_at?: string | null
         }

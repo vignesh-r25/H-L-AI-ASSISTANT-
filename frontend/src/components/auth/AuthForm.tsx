@@ -135,8 +135,33 @@ export const AuthForm = ({ onSuccess, defaultIsLogin = true }: AuthFormProps) =>
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5" />
-      <div className="absolute top-1/4 -left-1/4 w-1/2 h-1/2 bg-primary/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-purple/10 rounded-full blur-3xl" />
+
+      {/* Live Floating Particles */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{
+              x: Math.random() * 100 + "%",
+              y: Math.random() * 100 + "%",
+              opacity: 0,
+              scale: Math.random() * 0.5 + 0.5
+            }}
+            animate={{
+              y: [null, (Math.random() * -20 - 10) + "%"],
+              opacity: [0, 0.3, 0],
+              x: [null, (Math.random() * 10 - 5) + "%"]
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              ease: "linear",
+              delay: Math.random() * 5
+            }}
+            className="absolute w-1 h-1 bg-primary rounded-full blur-[1px]"
+          />
+        ))}
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -144,20 +169,49 @@ export const AuthForm = ({ onSuccess, defaultIsLogin = true }: AuthFormProps) =>
         transition={{ duration: 0.5 }}
         className="w-full max-w-md relative z-10"
       >
-        <div className={`glass-card-elevated p-8 transition-all duration-500 ${isReady ? "shadow-[0_0_40px_rgba(6,182,212,0.15)] border-primary/20" : ""}`}>
+        <div className={`glass-card-elevated p-8 transition-all duration-500 relative overflow-hidden group ${isReady ? "shadow-[0_0_40px_rgba(6,182,212,0.15)] border-primary/20" : ""}`}>
+          {/* Scanning Light Beam */}
+          <motion.div
+            animate={{
+              left: ["-100%", "200%"],
+              top: ["-100%", "200%"]
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "linear",
+              repeatDelay: 2
+            }}
+            className="absolute w-[150%] h-20 bg-gradient-to-r from-transparent via-primary/5 to-transparent rotate-[35deg] pointer-events-none"
+          />
+
           {/* Logo */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 relative">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
-              className="w-16 h-16 rounded-2xl bg-gradient-primary mx-auto mb-4 flex items-center justify-center glow-cyan"
+              className="w-16 h-16 rounded-2xl bg-gradient-primary mx-auto mb-4 flex items-center justify-center glow-cyan relative"
             >
-              <Zap className="w-8 h-8 text-primary-foreground" />
+              {/* Orbital Ring */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 rounded-2xl border border-primary/30 m-[-6px] border-t-primary"
+              />
+              <Zap className="w-8 h-8 text-primary-foreground relative z-10" />
             </motion.div>
-            <h1 className="text-2xl font-bold text-foreground">
+
+            <motion.h1
+              animate={{
+                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+              }}
+              transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+              className="text-2xl font-bold bg-gradient-to-r from-foreground via-primary/80 to-foreground bg-[length:200%_auto] bg-clip-text text-transparent"
+            >
               {isLogin ? "Welcome Back" : "Create Account"}
-            </h1>
+            </motion.h1>
+
             <p className="text-muted-foreground mt-1 text-sm uppercase tracking-widest opacity-60">
               {isLogin
                 ? "Sign in to continue"

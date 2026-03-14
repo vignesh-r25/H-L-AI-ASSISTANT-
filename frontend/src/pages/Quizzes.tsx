@@ -103,8 +103,8 @@ export const Quizzes = () => {
         try {
             const { data, error } = await supabase
                 .from('gamification_logs')
-                .select('*')
-                .eq('action_type', 'quiz_completed')
+                .select('id, metadata, created_at')
+                .eq('activity_type', 'quiz_completed')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -280,7 +280,7 @@ export const Quizzes = () => {
                 </h1>
             </div>
 
-            <div className="flex p-1.5 bg-card/50 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl">
+            <div className="flex p-1.5 bg-muted border border-border rounded-2xl shadow-xl">
                 <Button
                     variant={status === "input" ? "default" : "ghost"}
                     onClick={() => setStatus("input")}
@@ -329,7 +329,7 @@ export const Quizzes = () => {
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                                 onChange={handleFileUpload}
                             />
-                            <Button variant="outline" className="w-full h-16 rounded-2xl border-white/10 bg-white/5 font-black uppercase tracking-widest text-xs group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-transparent transition-all">
+                            <Button variant="outline" className="w-full h-16 rounded-2xl border-border bg-muted font-black uppercase tracking-widest text-xs group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-transparent transition-all">
                                 <Upload className="w-4 h-4 mr-2" /> Select Document
                             </Button>
                         </div>
@@ -453,7 +453,7 @@ export const Quizzes = () => {
                             <RotateCcw className="w-4 h-4 mr-2 group-hover:rotate-[-45deg] transition-transform" />
                             Abort Session
                         </Button>
-                        <div className="w-[1px] h-6 bg-white/10" />
+                        <div className="w-[1px] h-6 bg-border" />
                         <span className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">Module Node 0{currentQuestionIndex + 1}</span>
                     </div>
                     <div className="px-6 py-2 bg-primary text-primary-foreground rounded-full font-black text-sm shadow-xl shadow-primary/30">
@@ -461,7 +461,7 @@ export const Quizzes = () => {
                     </div>
                 </div>
 
-                <AppleCard className="overflow-hidden border-white/10 shadow-3xl rounded-[3rem]" noPadding>
+                <AppleCard className="overflow-hidden border-border shadow-3xl rounded-[3rem]" noPadding>
                     <Progress value={progress} className="h-2 bg-secondary/50 rounded-none" />
 
                     <div className="p-12 md:p-20">
@@ -471,8 +471,8 @@ export const Quizzes = () => {
 
                         <div className="grid grid-cols-1 gap-4 max-w-2xl mx-auto">
                             {question.options.map((option, index) => {
-                                let stateStyle = "bg-secondary/30 hover:bg-secondary/50 border-white/5 hover:translate-x-2";
-                                let indicator = <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center font-black text-xs text-muted-foreground">{String.fromCharCode(65 + index)}</div>;
+                                let stateStyle = "bg-muted/50 hover:bg-muted border-border hover:translate-x-2";
+                                let indicator = <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center font-black text-xs text-muted-foreground">{String.fromCharCode(65 + index)}</div>;
 
                                 if (isAnswered) {
                                     if (index === question.correctAnswer) {
@@ -529,7 +529,7 @@ export const Quizzes = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center justify-center min-h-[70vh] text-center"
         >
-            <AppleCard className="w-full max-w-2xl py-16 px-10 flex flex-col items-center rounded-[3rem] border-white/10 shadow-3xl relative overflow-hidden">
+            <AppleCard className="w-full max-w-2xl py-16 px-10 flex flex-col items-center rounded-[3rem] border-border shadow-3xl relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
 
                 <div className="relative mb-10">
@@ -563,7 +563,7 @@ export const Quizzes = () => {
                     </Button>
                 </div>
 
-                <div className="mt-12 p-8 bg-black/40 backdrop-blur-3xl rounded-[2rem] border border-white/5 text-left w-full relative z-10">
+                <div className="mt-12 p-8 bg-muted rounded-[2rem] border border-border text-left w-full relative z-10">
                     <div className="flex items-center gap-2 mb-4">
                         <Sparkles className="w-5 h-5 text-purple-400" />
                         <h3 className="font-black text-xs uppercase tracking-[0.2em] text-purple-400">AI Intelligence Report</h3>

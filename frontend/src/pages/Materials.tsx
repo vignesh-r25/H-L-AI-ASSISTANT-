@@ -227,7 +227,7 @@ export const Materials = () => {
     <div className="space-y-10 max-w-[1600px] mx-auto pb-20 px-4 sm:px-6">
 
       {/* Hero Header Section */}
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-primary/10 via-background to-purple-500/5 border border-white/10 p-8 md:p-12">
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-primary/10 via-background to-purple-500/5 border border-border/50 p-8 md:p-12">
         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-primary/20 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-96 h-96 bg-purple-500/20 blur-[120px] rounded-full pointer-events-none" />
 
@@ -253,7 +253,7 @@ export const Materials = () => {
             <Button
               onClick={handleAddYoutube}
               variant="outline"
-              className="h-14 px-8 rounded-2xl bg-white/5 border-white/10 hover:bg-white/10 backdrop-blur-xl transition-all hover:scale-105"
+              className="h-14 px-8 rounded-2xl bg-muted/50 border-border hover:bg-muted backdrop-blur-xl transition-all hover:scale-105"
             >
               <Youtube className="w-5 h-5 mr-3 text-red-500" />
               Import Video
@@ -301,7 +301,7 @@ export const Materials = () => {
 
         <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto">
           <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
-            <TabsList className="bg-white/5 border border-white/10 backdrop-blur-md h-14 p-1 rounded-xl w-full">
+            <TabsList className="bg-muted border border-border backdrop-blur-md h-14 p-1 rounded-xl w-full">
               <TabsTrigger value="all" className="rounded-lg h-12 px-6 data-[state=active]:bg-primary flex gap-2">
                 All Assets <span className="opacity-50 text-xs">{materials.length}</span>
               </TabsTrigger>
@@ -316,7 +316,7 @@ export const Materials = () => {
 
           <div className="h-10 w-[1px] bg-white/10 hidden sm:block" />
 
-          <Button variant="ghost" size="icon" className="h-14 w-14 rounded-xl bg-white/5 border border-white/10 hidden sm:flex">
+          <Button variant="ghost" size="icon" className="h-14 w-14 rounded-xl bg-muted border border-border hidden sm:flex">
             <Filter className="w-5 h-5" />
           </Button>
         </div>
@@ -337,7 +337,7 @@ export const Materials = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="border-2 border-dashed border-white/10 rounded-[3rem] p-20 text-center bg-white/2 hover:bg-white/5 transition-all relative group backdrop-blur-sm"
+          className="border-2 border-dashed border-border rounded-[3rem] p-20 text-center bg-muted/20 hover:bg-muted/40 transition-all relative group backdrop-blur-sm"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-[3rem]" />
 
@@ -372,7 +372,7 @@ export const Materials = () => {
                 transition={{ duration: 0.4, delay: index * 0.05 }}
               >
                 <AppleCard
-                  className="group relative h-full flex flex-col p-0 border-white/5 bg-secondary/20 hover:bg-secondary/40 transition-all duration-500 rounded-[2.5rem] overflow-hidden cursor-pointer"
+                  className="group relative h-full flex flex-col p-0 border-border bg-card hover:shadow-xl transition-all duration-500 rounded-[2.5rem] overflow-hidden cursor-pointer"
                   noPadding
                   onClick={() => window.open(material.url, '_blank')}
                 >
@@ -391,7 +391,7 @@ export const Materials = () => {
 
                     {/* Stats overlay */}
                     <div className="absolute top-4 left-4 flex gap-2">
-                      <div className="px-3 py-1 bg-black/40 backdrop-blur-md rounded-full text-[10px] font-bold text-white uppercase border border-white/10 tracking-widest">
+                      <div className="px-3 py-1 bg-background/80 backdrop-blur-md rounded-full text-[10px] font-bold text-foreground uppercase border border-border tracking-widest">
                         {material.type}
                       </div>
                     </div>
@@ -429,7 +429,7 @@ export const Materials = () => {
                       <Button
                         variant="secondary"
                         size="icon"
-                        className="h-12 w-12 rounded-2xl bg-white/10 hover:bg-destructive hover:text-white border border-white/10 shadow-xl transition-all"
+                        className="h-12 w-12 rounded-2xl bg-background/80 hover:bg-destructive hover:text-destructive-foreground border border-border shadow-xl transition-all"
                         onClick={(e) => handleDelete(material.id, e)}
                       >
                         <Trash2 className="w-5 h-5" />

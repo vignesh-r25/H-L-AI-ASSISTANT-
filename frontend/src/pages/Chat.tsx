@@ -453,7 +453,15 @@ export const Chat = () => {
                             <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full text-muted-foreground/40 hover:text-white hover:bg-white/5" onClick={startNewChat}>
                                 <Plus className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full text-muted-foreground/40 hover:text-white hover:bg-white/5" onClick={() => toast.info("Share disabled")}>
+                            <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full text-muted-foreground/40 hover:text-white hover:bg-white/5" onClick={() => {
+                                if (messages.length === 0) {
+                                    toast.info("No conversation to share yet.");
+                                    return;
+                                }
+                                const chatTranscript = messages.map(m => `${m.role === 'user' ? 'Me' : 'AI'}: ${m.content}`).join("\n\n");
+                                navigator.clipboard.writeText(chatTranscript);
+                                toast.success("Chat history copied to clipboard!");
+                            }}>
                                 <Share2 className="w-4 h-4" />
                             </Button>
                         </div>
@@ -461,7 +469,7 @@ export const Chat = () => {
 
                     {/* Conversational Space */}
                     <ScrollArea className="flex-1 overflow-x-hidden">
-                        <div className="max-w-4xl mx-auto px-6 py-16 space-y-12 min-h-full pb-40">
+                        <div className="max-w-6xl mx-auto px-6 py-16 space-y-12 min-h-full pb-40">
                             {messages.length === 0 ? (
                                 <motion.div
                                     initial={{ opacity: 0, y: 15 }}
@@ -551,7 +559,7 @@ export const Chat = () => {
 
                     {/* Gemini Floating Pill Input Bar */}
                     <div className="absolute inset-x-0 bottom-10 z-50 px-6 pointer-events-none">
-                        <div className="max-w-3xl mx-auto w-full pointer-events-auto">
+                        <div className="max-w-5xl mx-auto w-full pointer-events-auto">
                             <div className="p-2.5 rounded-[3rem] bg-zinc-900 shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 flex flex-col gap-2 transition-all duration-300 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30 group">
                                 <AnimatePresence>
                                     {fileContext && (

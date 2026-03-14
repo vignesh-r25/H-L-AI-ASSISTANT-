@@ -151,6 +151,45 @@ export const Settings = ({ onProfileUpdate }: SettingsProps) => {
         }
     };
 
+    const handleRepairProfile = async () => {
+        setLoading(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                toast.error("Auth session not found. Please sign in.");
+                return;
+            }
+
+            console.log("[Settings] Manual profile repair triggered for user:", user.id);
+            const { data: newProfile, error: createError } = await supabase
+                .from("profiles")
+                .insert({
+                    id: user.id,
+                    email: user.email,
+                    display_name: user.user_metadata?.display_name || user.email?.split("@")[0] || "Learner",
+                    role: "student"
+                })
+                .select()
+                .maybeSingle();
+
+            if (createError) throw createError;
+
+            if (newProfile) {
+                setProfile(newProfile as Profile);
+                setEditName(newProfile.display_name || "");
+                if (onProfileUpdate) {
+                    onProfileUpdate(newProfile as Profile);
+                }
+                toast.success("Identity established successfully!");
+            }
+        } catch (error: any) {
+            console.error('[Settings] Repair failed:', error);
+            toast.error("Cloud repair failed: " + (error.message || "Unknown error"));
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-[70vh] space-y-4">
@@ -164,13 +203,23 @@ export const Settings = ({ onProfileUpdate }: SettingsProps) => {
 
     if (!profile) {
         return (
-            <div className="flex flex-col items-center justify-center h-[70vh] text-center p-6">
-                <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
-                    <X className="w-8 h-8 text-destructive" />
+            <div className="flex flex-col items-center justify-center h-[70vh] text-center p-6 animate-in fade-in zoom-in duration-500">
+                <div className="w-20 h-20 rounded-[2rem] bg-destructive/10 border border-destructive/20 flex items-center justify-center mb-8 relative group">
+                    <X className="w-10 h-10 text-destructive group-hover:scale-110 transition-transform" />
+                    <div className="absolute inset-0 bg-destructive/5 blur-2xl rounded-full" />
                 </div>
-                <h2 className="text-2xl font-bold mb-2">Profile Unreachable</h2>
-                <p className="text-muted-foreground mb-8 max-w-sm">We couldn't initialize your cloud profile. Please verify your connection status.</p>
-                <Button onClick={() => window.location.reload()} variant="outline" className="rounded-xl">Retry Connection</Button>
+                <h2 className="text-3xl font-bold mb-4 tracking-tight">Identity Synchronization Error</h2>
+                <p className="text-muted-foreground mb-10 max-w-sm font-medium leading-relaxed opacity-70">
+                    We couldn't locate your cloud profile in our neural vault. This usually happens when an account isn't fully initialized.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <Button onClick={handleRepairProfile} className="rounded-2xl px-8 h-12 font-bold shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90">
+                        Repair Identity
+                    </Button>
+                    <Button onClick={() => window.location.reload()} variant="outline" className="rounded-2xl px-8 h-12 border-border/60 hover:bg-muted font-bold transition-all">
+                        Retry Connection
+                    </Button>
+                </div>
             </div>
         );
     }
@@ -224,22 +273,31 @@ export const Settings = ({ onProfileUpdate }: SettingsProps) => {
                                             if (!user) throw new Error("Unauthenticated");
 
                                             console.log("[Settings] Uploading avatar for user:", user.id);
-                                            
+
                                             // 1. Upload to Storage
                                             const fileExt = file.name.split('.').pop();
                                             const filePath = `${user.id}/${Date.now()}.${fileExt}`;
 
+                                            console.log("[Settings] Uploading to path:", filePath);
+
                                             const { error: uploadError, data: uploadData } = await supabase.storage
                                                 .from('avatars')
-                                                .upload(filePath, file, { 
+                                                .upload(filePath, file, {
                                                     upsert: true,
                                                     contentType: file.type
                                                 });
 
                                             if (uploadError) {
                                                 console.error("[Settings] Storage upload error:", uploadError);
-                                                const msg = uploadError.message === 'Bucket not found' ? 'Bucket not found (Create avatars bucket in Supabase)' : uploadError.message;
-                                                throw new Error(`Cloud storage failure: ${msg}`);
+
+                                                let friendlyMsg = uploadError.message;
+                                                if (uploadError.message === 'Bucket not found') {
+                                                    friendlyMsg = 'Storage bucket "avatars" missing. Please create it in Supabase dashboard.';
+                                                } else if (uploadError.message.includes('Invalid Compact JWS') || (uploadError as any).status === 400) {
+                                                    friendlyMsg = 'Supabase Connection Error: Your API keys in .env might be misconfigured (Invalid JWT).';
+                                                }
+
+                                                throw new Error(friendlyMsg);
                                             }
 
                                             // 2. Get Public URL
@@ -247,7 +305,9 @@ export const Settings = ({ onProfileUpdate }: SettingsProps) => {
                                                 .from('avatars')
                                                 .getPublicUrl(filePath);
 
-                                            console.log("[Settings] Avatar uploaded. Public URL:", publicUrl);
+                                            if (!publicUrl) throw new Error("Could not generate public URL for avatar");
+
+                                            console.log("[Settings] Avatar uploaded successfully. Public URL:", publicUrl);
 
                                             // 3. Update Profile Table
                                             const { error: updateError } = await supabase
@@ -256,8 +316,8 @@ export const Settings = ({ onProfileUpdate }: SettingsProps) => {
                                                 .eq('id', user.id);
 
                                             if (updateError) {
-                                                console.error("[Settings] Profile update error:", updateError);
-                                                throw new Error("Identity sync failed");
+                                                console.error("[Settings] Profile table update error:", updateError);
+                                                throw new Error(`Profile sync failed: ${updateError.message}`);
                                             }
 
                                             // 4. Update Local State & Broadcast
@@ -266,7 +326,7 @@ export const Settings = ({ onProfileUpdate }: SettingsProps) => {
                                                 onProfileUpdate({ avatar_url: publicUrl });
                                             }
 
-                                            toast.success("Photo synchronized");
+                                            toast.success("Identity visual updated");
                                         } catch (error: any) {
                                             console.error('[Settings] Photo update failed:', error);
                                             toast.error(error.message || "Photo synchronization failed");

@@ -1,15 +1,28 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, RotateCw, Brain, Check, Layers, Trophy, RefreshCw, Loader2, BookOpen, Clock, Trash2, ChartBar, Sparkles } from "lucide-react";
+import { Plus, RotateCw, Brain, Check, Layers, Trophy, RefreshCw, Loader2, BookOpen, Clock, Trash2, ChartBar, Sparkles, FileText, Youtube, Upload, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import { AppleCard } from "@/components/ui/AppleCard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { generateResponse } from "@/services/ai";
+import * as pdfjsLib from 'pdfjs-dist';
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
+
+const initPdfWorker = () => {
+    try {
+        if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+        }
+    } catch (e) {
+        console.error("Failed to init PDF worker:", e);
+    }
+};
 
 interface Flashcard {
     id: string;
@@ -19,9 +32,14 @@ interface Flashcard {
 }
 
 export const Flashcards = () => {
-    const [mode, setMode] = useState<"study" | "create" | "deck-selection">("deck-selection");
+    const [mode, setMode] = useState<"study" | "create" | "deck-selection" | "ai-generate">("deck-selection");
     const [cards, setCards] = useState<Flashcard[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+
+    // AI Generation State
+    const [aiSourceType, setAiSourceType] = useState<"topic" | "pdf" | "youtube">("topic");
+    const [aiTopic, setAiTopic] = useState("");
+    const [aiYoutubeUrl, setAiYoutubeUrl] = useState("");
 
     // Study Session State
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -34,16 +52,15 @@ export const Flashcards = () => {
     const [isGenerating, setIsGenerating] = useState(false);
 
     useEffect(() => {
+        if (typeof window !== 'undefined') initPdfWorker();
         fetchFlashcards();
     }, []);
 
-    const handleAiGenerate = async () => {
-        const topic = prompt("Enter a topic or paste content for AI generation:");
-        if (!topic) return;
-
+    const processAiGeneration = async (promptText: string) => {
         setIsGenerating(true);
         try {
-            const prompt = `Generate 3 high-quality flashcards for the topic: "${topic}". 
+            const prompt = `${promptText} 
+            Generate 3 high-quality flashcards based on the provided context.
             Return ONLY a valid JSON array of objects with "front" and "back" properties.
             Example: [{"front": "What is React?", "back": "A JS library for building UIs"}]`;
 
@@ -56,9 +73,10 @@ export const Flashcards = () => {
 
                 const newCards = generated.map((c: any) => ({
                     user_id: user.id,
-                    front: c.front,
-                    back: c.back,
-                    mastered: false
+                    question: c.front,
+                    answer: c.back,
+                    is_custom: true,
+                    difficulty: 'medium'
                 }));
 
                 const { data, error } = await supabase
@@ -67,14 +85,64 @@ export const Flashcards = () => {
                     .select();
 
                 if (error) throw error;
-                setCards([...(data || []), ...cards]);
+                const mappedCards = (data || []).map((c: any) => ({
+                    id: c.id,
+                    front: c.question,
+                    back: c.answer,
+                    mastered: (c.review_count || 0) > 0
+                }));
+                setCards([...mappedCards, ...cards]);
                 toast.success(`Generated ${generated.length} cards!`);
                 setMode("study");
+            } else {
+                throw new Error("Invalid response format");
             }
         } catch (error) {
             console.error("AI Generation failed:", error);
             toast.error("Failed to generate cards");
         } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const handleTopicSubmit = () => {
+        if (!aiTopic) {
+            toast.error("Please enter a topic");
+            return;
+        }
+        processAiGeneration(`Create flashcards about the topic: "${aiTopic}".`);
+    };
+
+    const handleYoutubeSubmit = () => {
+        if (!aiYoutubeUrl.includes("youtube.com") && !aiYoutubeUrl.includes("youtu.be")) {
+            toast.error("Invalid YouTube URL");
+            return;
+        }
+        processAiGeneration(`Create flashcards about the topic mentioned in this URL: ${aiYoutubeUrl}.`);
+    };
+
+    const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.type !== "application/pdf") {
+            toast.error("Only PDF files are supported");
+            return;
+        }
+
+        setIsGenerating(true);
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = "";
+            for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                fullText += content.items.map((item: any) => item.str).join(" ") + " ";
+            }
+            await processAiGeneration(`Create flashcards based on this content: ${fullText.substring(0, 4000)}`);
+        } catch (error) {
+            console.error("PDF Parsing Error:", error);
+            toast.error("Failed to parse PDF document");
             setIsGenerating(false);
         }
     };
@@ -88,7 +156,13 @@ export const Flashcards = () => {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            setCards(data || []);
+            const mappedCards = (data || []).map((c: any) => ({
+                id: c.id,
+                front: c.question,
+                back: c.answer,
+                mastered: (c.review_count || 0) > 0
+            }));
+            setCards(mappedCards);
         } catch (error) {
             console.error("Error fetching cards:", error);
             toast.error("Failed to load flashcards");
@@ -111,9 +185,9 @@ export const Flashcards = () => {
                 if (user) {
                     await supabase
                         .from('flashcards')
-                        .update({ mastered: true })
+                        .update({ review_count: 1, last_reviewed: new Date().toISOString() })
                         .eq('id', currentCard.id);
-                    
+
                     console.log("[Flashcards] Awarding XP: 10 to user:", user.id);
                     const { error: rpcError } = await supabase.rpc('award_xp', {
                         target_id: user.id,
@@ -154,16 +228,24 @@ export const Flashcards = () => {
                 .from('flashcards')
                 .insert({
                     user_id: user.id,
-                    front: newCard.front,
-                    back: newCard.back,
-                    mastered: false
+                    question: newCard.front,
+                    answer: newCard.back,
+                    is_custom: true,
+                    difficulty: 'medium'
                 })
                 .select()
                 .single();
 
             if (error) throw error;
 
-            setCards([data, ...cards]);
+            const mappedCard = {
+                id: data.id,
+                front: data.question,
+                back: data.answer,
+                mastered: (data.review_count || 0) > 0
+            };
+
+            setCards([mappedCard, ...cards]);
             setNewCard({ front: "", back: "" });
             toast.success("Flashcard added!");
             setMode("study");
@@ -241,12 +323,11 @@ export const Flashcards = () => {
                         New Card
                     </Button>
                     <Button
-                        variant="ghost"
-                        onClick={handleAiGenerate}
-                        disabled={isGenerating}
+                        variant={mode === "ai-generate" ? "default" : "ghost"}
+                        onClick={() => setMode("ai-generate")}
                         className="rounded-xl h-11 px-6 text-primary hover:bg-primary/10"
                     >
-                        {isGenerating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                        <Sparkles className="w-4 h-4 mr-2" />
                         AI Gen
                     </Button>
                 </div>
@@ -400,7 +481,7 @@ export const Flashcards = () => {
                             </Button>
                         </div>
                     </motion.div>
-                ) : (
+                ) : mode === "create" ? (
                     <motion.div
                         key="create"
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -441,7 +522,131 @@ export const Flashcards = () => {
                             </CardContent>
                         </Card>
                     </motion.div>
-                )}
+                ) : mode === "ai-generate" ? (
+                    <motion.div
+                        key="ai-gen"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="space-y-10"
+                    >
+                        {isGenerating ? (
+                            <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-8">
+                                <div className="relative">
+                                    <div className="w-40 h-40 rounded-full border-[6px] border-primary/10 animate-[spin_4s_linear_infinite]" />
+                                    <div className="w-40 h-40 rounded-full border-[6px] border-t-primary animate-[spin_1.5s_ease-in-out_infinite] absolute inset-0" />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <Brain className="w-12 h-12 text-primary animate-bounce-slow" />
+                                    </div>
+                                </div>
+                                <div className="text-center space-y-2">
+                                    <h2 className="text-3xl font-bold">Synthesizing Knowledge...</h2>
+                                    <p className="text-muted-foreground">Extracting core insights into flashcards.</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="text-center space-y-2 max-w-2xl mx-auto mb-10">
+                                    <h2 className="text-3xl font-bold tracking-tight">AI Generation Hub</h2>
+                                    <p className="text-muted-foreground">Turn your materials directly into flashcards in seconds.</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    {/* Topic Input */}
+                                    <AppleCard
+                                        className={cn(
+                                            "group cursor-pointer transition-all duration-300 border-white/5",
+                                            aiSourceType === "topic" ? "ring-2 ring-primary bg-primary/5 shadow-xl" : "bg-card/40 hover:bg-card/60"
+                                        )}
+                                        onClick={() => setAiSourceType("topic")}
+                                        noPadding
+                                    >
+                                        <div className="p-8 flex flex-col items-center text-center h-full">
+                                            <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6">
+                                                <Type className="w-8 h-8 text-blue-500 opacity-80" />
+                                            </div>
+                                            <h3 className="text-xl font-bold mb-2">Topic / Text</h3>
+                                            <p className="text-sm text-muted-foreground mb-6 flex-1">Type or paste any text directly.</p>
+                                            {aiSourceType === "topic" && (
+                                                <div className="w-full space-y-3 mt-auto">
+                                                    <Input
+                                                        placeholder="E.g. Quantum Physics..."
+                                                        value={aiTopic}
+                                                        onChange={(e) => setAiTopic(e.target.value)}
+                                                        className="h-12 bg-background border-border text-center"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                    <Button className="w-full h-12 font-bold" onClick={(e) => { e.stopPropagation(); handleTopicSubmit(); }} disabled={!aiTopic}>Generate</Button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </AppleCard>
+
+                                    {/* PDF Upload */}
+                                    <AppleCard
+                                        className={cn(
+                                            "group cursor-pointer transition-all duration-300 border-white/5",
+                                            aiSourceType === "pdf" ? "ring-2 ring-primary bg-primary/5 shadow-xl" : "bg-card/40 hover:bg-card/60"
+                                        )}
+                                        onClick={() => setAiSourceType("pdf")}
+                                        noPadding
+                                    >
+                                        <div className="p-8 flex flex-col items-center text-center h-full">
+                                            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                                                <FileText className="w-8 h-8 text-primary opacity-80" />
+                                            </div>
+                                            <h3 className="text-xl font-bold mb-2">Document</h3>
+                                            <p className="text-sm text-muted-foreground mb-6 flex-1">Extract from PDF files.</p>
+                                            {aiSourceType === "pdf" && (
+                                                <div className="w-full relative mt-auto">
+                                                    <input
+                                                        type="file"
+                                                        accept=".pdf"
+                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                        onChange={(e) => { e.stopPropagation(); handlePdfUpload(e); }}
+                                                    />
+                                                    <Button variant="outline" className="w-full h-12 bg-background font-bold border-border">
+                                                        <Upload className="w-4 h-4 mr-2" /> Select PDF
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </AppleCard>
+
+                                    {/* YouTube Extractor */}
+                                    <AppleCard
+                                        className={cn(
+                                            "group cursor-pointer transition-all duration-300 border-white/5",
+                                            aiSourceType === "youtube" ? "ring-2 ring-primary bg-primary/5 shadow-xl" : "bg-card/40 hover:bg-card/60"
+                                        )}
+                                        onClick={() => setAiSourceType("youtube")}
+                                        noPadding
+                                    >
+                                        <div className="p-8 flex flex-col items-center text-center h-full">
+                                            <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6">
+                                                <Youtube className="w-8 h-8 text-red-500 opacity-80" />
+                                            </div>
+                                            <h3 className="text-xl font-bold mb-2">Video Resource</h3>
+                                            <p className="text-sm text-muted-foreground mb-6 flex-1">Generate from YouTube URL.</p>
+                                            {aiSourceType === "youtube" && (
+                                                <div className="w-full space-y-3 mt-auto">
+                                                    <Input
+                                                        placeholder="Paste URL..."
+                                                        value={aiYoutubeUrl}
+                                                        onChange={(e) => setAiYoutubeUrl(e.target.value)}
+                                                        className="h-12 bg-background border-border text-center"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                    <Button className="w-full h-12 font-bold" onClick={(e) => { e.stopPropagation(); handleYoutubeSubmit(); }} disabled={!aiYoutubeUrl}>Generate</Button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </AppleCard>
+                                </div>
+                            </>
+                        )}
+                    </motion.div>
+                ) : null}
             </AnimatePresence>
         </div>
     );

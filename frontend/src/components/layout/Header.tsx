@@ -202,7 +202,7 @@ export const Header = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-black">
+    <header className="sticky top-0 z-40 border-b border-border bg-background">
       <div className="flex items-center justify-between h-16 px-6">
         {/* Search */}
         <div ref={searchRef} className="relative w-full max-w-md">
@@ -220,7 +220,7 @@ export const Header = ({
 
           {/* Search Results Dropdown - Fast Conditional Rendering */}
           {showResults && searchQuery.length > 0 && (
-            <div className="absolute top-full mt-2 left-0 w-full bg-black border border-border/80 rounded-lg shadow-none overflow-hidden z-50">
+            <div className="absolute top-full mt-2 left-0 w-full bg-card border border-border/80 rounded-lg shadow-none overflow-hidden z-50">
               <ScrollArea className="max-h-[300px]">
                 {filteredItems.length > 0 ? (
                   <div className="p-2">

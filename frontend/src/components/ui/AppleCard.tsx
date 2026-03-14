@@ -15,7 +15,7 @@ export const AppleCard = ({
     return (
         <div
             className={cn(
-                "relative overflow-hidden rounded-lg bg-black border border-border/60",
+                "relative overflow-hidden rounded-lg bg-card border border-border/60",
                 noPadding ? "" : "p-6",
                 className
             )}

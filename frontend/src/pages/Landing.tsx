@@ -26,10 +26,10 @@ export default function Landing() {
 
     const handleAuthClick = (path: string) => {
         setIsNavigating(true);
-        // Snappy but visible animation - 1s as requested for fast transition
+        // Snappy but visible animation - 800ms so the user can actually see the "Please wait" 
         setTimeout(() => {
             navigate(path);
-        }, 200);
+        }, 800);
     };
 
     const scrollToFeatures = () => {
@@ -45,31 +45,57 @@ export default function Landing() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black"
+                        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background overflow-hidden"
                     >
+                        {/* Background Scanning Grid */}
+                        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+
                         <div className="relative">
-                            <div className="w-16 h-16 rounded-2xl border-4 border-primary/20 animate-[spin_3s_linear_infinite]" />
-                            <div className="w-16 h-16 rounded-2xl border-4 border-t-primary animate-[spin_1s_ease-in-out_infinite] absolute inset-0" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Zap className="w-6 h-6 text-primary animate-pulse" />
+                            {/* Triple Layer Loader */}
+                            <div className="w-20 h-20 rounded-2xl border-4 border-primary/10 animate-[spin_4s_linear_infinite]" />
+                            <div className="w-20 h-20 rounded-2xl border-4 border-t-primary/40 animate-[spin_2s_ease-in-out_infinite] absolute inset-0 rotate-45" />
+                            <div className="w-20 h-20 rounded-2xl border-4 border-t-primary animate-[spin_1s_ease-in-out_infinite] absolute inset-0" />
+
+                            {/* Inner Glow Badge */}
+                            <div className="absolute inset-0 flex items-center justify-center opacity-50">
+                                <motion.div
+                                    animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                    className="w-12 h-12 bg-primary/20 rounded-full blur-xl"
+                                />
+                                <Zap className="w-6 h-6 text-primary absolute" />
                             </div>
                         </div>
-                        <motion.p
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="mt-6 text-sm font-black uppercase tracking-[0.3em] text-primary"
-                        >
-                            Please wait...
-                        </motion.p>
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.5 }}
-                            className="mt-2 text-[10px] text-muted-foreground font-medium uppercase tracking-widest"
-                        >
-                            Accessing Auth Module
-                        </motion.p>
+
+                        <div className="mt-10 space-y-3 flex flex-col items-center">
+                            <motion.div
+                                initial={{ opacity: 0, letterSpacing: "0.2em" }}
+                                animate={{
+                                    opacity: [0.4, 1, 0.4],
+                                    letterSpacing: ["0.3em", "0.4em", "0.3em"]
+                                }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                                className="text-sm font-black uppercase text-primary text-center"
+                            >
+                                Please wait...
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: "100px" }}
+                                transition={{ duration: 0.8, ease: "easeOut" }}
+                                className="h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent"
+                            />
+
+                            <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 0.4 }}
+                                transition={{ delay: 0.3 }}
+                                className="text-[9px] text-muted-foreground font-mono uppercase tracking-[0.2em] animate-pulse"
+                            >
+                                Synchronizing Auth Module
+                            </motion.p>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -95,14 +121,14 @@ export default function Landing() {
                     <div className="flex items-center gap-4">
                         <Button
                             variant="ghost"
-                            asChild
+                            onClick={() => handleAuthClick("/auth")}
                         >
-                            <Link to="/auth">Sign In</Link>
+                            Sign In
                         </Button>
                         <Button
-                            asChild
+                            onClick={() => handleAuthClick("/auth?mode=signup")}
                         >
-                            <Link to="/auth?mode=signup">Create Free Account</Link>
+                            Create Free Account
                         </Button>
                     </div>
                 </div>

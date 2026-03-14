@@ -36,7 +36,7 @@ const AdminAnalytics = lazy(() => import("./pages/admin-dashboard/StudentAnalyti
 const queryClient = new QueryClient();
 
 const LoadingScreen = () => (
-  <div className="flex items-center justify-center min-h-screen bg-black text-cyan-500 overflow-hidden relative">
+  <div className="flex items-center justify-center min-h-screen bg-background text-cyan-500 overflow-hidden relative">
     {/* Background Glow */}
     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.05)_0%,transparent_70%)]" />
 
